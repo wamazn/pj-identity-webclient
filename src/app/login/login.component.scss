@@ -1,0 +1,29 @@
+@import "src/theme/theme-variables";
+@import "~@angular/material/theming";
+
+:host {
+  display: flex;
+  flex: 1;
+}
+
+.inline-loader {
+  display: inline-block;
+}
+
+.version {
+  margin: 0;
+}
+
+.login-box {
+  height: fit-content;
+  @include mat-elevation(0);
+}
+
+.login-container,
+.mat-form-field {
+  width: 100%;
+}
+
+.login-error {
+  color: mat-color($app-warn);
+}

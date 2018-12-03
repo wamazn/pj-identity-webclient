@@ -1,0 +1,57 @@
+@import "src/theme/theme-variables";
+@import "~@angular/material/theming";
+
+:host {
+  display: flex;
+  flex: 1;
+}
+
+.inline-loader {
+  display: inline-block;
+}
+
+.version {
+  margin: 0;
+}
+
+.main-box {
+  height: fit-content;
+  @include mat-elevation(0);
+  /* background-color: rgba(162, 201, 226, 0.849); */
+}
+
+.main-container,
+.mat-form-field {
+  width: 100%;
+}
+
+.registration-error {
+  color: mat-color($app-warn);
+}
+
+.profile-pic-preview {
+  img {
+    width: 3.5em;
+    height: 3.5em;
+    border-radius: 50%;
+    position: relative;
+    border: 2px solid #77f;
+    display: block;
+    margin: 0 auto;
+    -webkit-filter: sepia(0.25);
+    -moz-filter: sepia(0.25);
+    filter: sepia(0.25);
+    background-size: cover;
+  }
+  /* background-image: url('https://material.angular.io/assets/img/examples/shiba1.jpg'); */
+}
+
+.drop-picture-content {
+  color: rgba(0, 163, 230, 0.7);
+  display: block;
+  border-bottom: 2px dashed;
+}
+
+.profile-croper {
+  max-height: 400px;
+}

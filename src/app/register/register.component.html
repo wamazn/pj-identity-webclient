@@ -1,0 +1,118 @@
+<div fxFill fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="1.5rem" class="mat-typography">
+  <div class="main-container" fxLayout="row" fxLayoutAlign="center">
+    <mat-card *ngIf="step == 0" fxFlex="90%" fxFlex.sm="66%" fxFlex.md="50%" fxFlex.gt-md="33%" class="main-box">
+      <pj-name-logo></pj-name-logo>
+      <form (ngSubmit)="register()" [formGroup]="registerForm" novalidate>
+        <div class="registration-error" [hidden]="!registerError || isLoading" translate>member name incorrect.</div>
+        <br />
+        <div fxLayout="column">
+          <mat-form-field>
+            <input
+              type="text"
+              matInput
+              formControlName="membername"
+              autocomplete="membername"
+              [placeholder]="'@membername' | translate"
+            />
+            <mat-error *ngIf="!registerForm.controls.membername.valid || mbrError">
+              <span *ngIf="!mbrError" translate>member name is required</span>
+              <span *ngIf="mbrError" translate>member name already exists</span>
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <input
+              type="email"
+              matInput
+              formControlName="email"
+              autocomplete="email"
+              [placeholder]="'email' | translate"
+            />
+            <mat-error
+              *ngIf="
+                (registerForm.controls.email.hasError('email') && !registerForm.controls.email.hasError('required')) ||
+                emailError
+              "
+            >
+              <span *ngIf="!emailError" translate>email is invlaid</span>
+              <span *ngIf="emailError" translate>email already registered</span>
+            </mat-error>
+            <mat-error
+              *ngIf="!registerForm.controls.email.hasError('email') && registerForm.controls.email.hasError('required')"
+            >
+              <span *ngIf="!emailError" translate>email is required</span>
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <input
+              type="password"
+              matInput
+              formControlName="password"
+              autocomplete="new-password"
+              [placeholder]="'password' | translate"
+            />
+            <mat-error *ngIf="registerForm.controls.password.hasError('required')">
+              <span translate>password is required</span>
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <input
+              type="password"
+              matInput
+              formControlName="passwordRepeate"
+              autocomplete="new-password"
+              [placeholder]="'repeate password' | translate"
+            />
+            <mat-error *ngIf="!registerForm.controls.passwordRepeate.valid">
+              <span translate>passwords don't match</span>
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <input maxlength="4" type="number" matInput formControlName="key" [placeholder]="'key' | translate" />
+            <mat-hint>A 4 digit security number</mat-hint>
+            <mat-error *ngIf="!registerForm.controls.key.valid">
+              <span translate>key is required and must be a 4 digit number</span>
+            </mat-error>
+          </mat-form-field>
+          <br />
+
+          <button mat-flat-button color="primary" type="submit" [disabled]="registerForm.invalid || isLoading">
+            <app-loader class="inline-loader" [isLoading]="isLoading"></app-loader>
+            <span translate>Register</span>
+          </button>
+        </div>
+      </form>
+      <mat-card-actions>
+        <button color="primary" [routerLink]="['/login']" queryParamsHandling="preserve" mat-button>
+          <span translate>Login</span>
+        </button>
+      </mat-card-actions>
+    </mat-card>
+    <mat-card
+      *ngIf="step == 1"
+      pjDropZone
+      (filesDropped)="drop($event)"
+      fxFlex="90%"
+      fxFlex.sm="66%"
+      fxFlex.md="50%"
+      fxFlex.gt-md="33%"
+      class="main-box"
+    >
+      <pj-name-logo></pj-name-logo>
+      <mat-card-header>
+        <!-- <div mat-card-avatar class="profile-pic-preview"> -->
+        <img start mat-card-avatar src="{{loadedFileUrl}}" />
+        <!-- <img alt="profile-picture" src="https://material.angular.io/assets/img/examples/shiba1.jpg" /> -->
+        <!-- </div> -->
+        <mat-card-title>Shiba Inu</mat-card-title>
+        <mat-card-subtitle>Dog Breed</mat-card-subtitle>
+      </mat-card-header>
+      <img class="profile-croper" mat-card-image src="{{loadedFileUrl}}" alt="Photo of a Shiba Inu" />
+      <mat-card-content> <h3 class="drop-picture-content" translate>Dorp a picture here.</h3> </mat-card-content>
+      <mat-card-actions>
+        <input type="file" style="display: none;" (change)="selectFile($event)" #fileInput />
+        <button (click)="fileInput.click()" color="primary" mat-button><span translate>Pick Image</span></button>
+        <button color="primary" mat-button><span translate>Save</span></button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

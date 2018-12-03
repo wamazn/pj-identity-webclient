@@ -1,0 +1,22 @@
+{
+  "generator-ngx-rocket": {
+    "version": "5.3.0",
+    "props": {
+      "location": "path",
+      "appName": "identity",
+      "target": ["web"],
+      "pwa": true,
+      "ui": "material",
+      "layout": "simple",
+      "auth": true,
+      "lazy": true,
+      "angulartics": true,
+      "analyticsProvider": "ga",
+      "googleAnalyticsAccount": "UA-PLaceHOlder",
+      "prettier": true,
+      "projectName": "identity",
+      "packageManager": "npm",
+      "mobile": []
+    }
+  }
+}

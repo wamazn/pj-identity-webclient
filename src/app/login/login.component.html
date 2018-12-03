@@ -1,0 +1,72 @@
+<div fxFill fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="1.5rem" class="mat-typography">
+  <div class="login-container" fxLayout="row" fxLayoutAlign="center">
+    <mat-card *ngIf="step == 0" fxFlex="90%" fxFlex.sm="66%" fxFlex.md="50%" fxFlex.gt-md="33%" class="login-box">
+      <pj-name-logo></pj-name-logo>
+      <form (ngSubmit)="findMember()" [formGroup]="identifierForm" novalidate>
+        <div class="login-error" [hidden]="!mbrError || isLoading" translate>member name incorrect.</div>
+        <br />
+        <div fxLayout="column">
+          <mat-form-field>
+            <input
+              type="text"
+              matInput
+              formControlName="identifier"
+              autocomplete="identifier"
+              [placeholder]="'@name or email' | translate"
+            />
+            <mat-error *ngIf="identifierForm.controls.identifier.valid">
+              <span translate>member name or email is required</span>
+            </mat-error>
+          </mat-form-field>
+          <br />
+          <button mat-flat-button color="primary" type="submit" [disabled]="identifierForm.invalid || isLoading">
+            <app-loader class="inline-loader" [isLoading]="isLoading"></app-loader>
+            <span translate>Next</span>
+          </button>
+        </div>
+      </form>
+      <mat-card-actions>
+        <button start color="primary" (click)="goBack()" mat-button><span translate> Back </span></button>
+        <button end color="primary" [routerLink]="['/register']" queryParamsHandling="preserve" mat-button>
+          <span translate> Register </span>
+        </button>
+      </mat-card-actions>
+    </mat-card>
+    <mat-card *ngIf="step == 1" fxFlex="90%" fxFlex.sm="66%" fxFlex.md="50%" fxFlex.gt-md="33%" class="login-box">
+      <pj-name-logo></pj-name-logo>
+      <mat-card-header>
+        <img start mat-card-avatar src="{{profilePreview.picture}}" />
+        <mat-card-title>{{ profilePreview.name }}</mat-card-title>
+        <mat-card-subtitle>{{ profilePreview.membername }}</mat-card-subtitle>
+      </mat-card-header>
+      <br />
+      <form (ngSubmit)="login()" [formGroup]="passWordForm" novalidate>
+        <div class="login-error" [hidden]="!pwdError || isLoading" translate>Password incorrect.</div>
+        <div fxLayout="column">
+          <mat-form-field>
+            <input
+              type="password"
+              matInput
+              formControlName="password"
+              autocomplete="current-password"
+              [placeholder]="'Password' | translate"
+              required
+            />
+            <mat-error *ngIf="passWordForm.controls.password.valid">
+              <span translate>Password is required</span>
+            </mat-error>
+          </mat-form-field>
+          <mat-slide-toggle color="primary" formControlName="remember" translate>Remember me</mat-slide-toggle>
+          <br />
+          <button mat-flat-button color="primary" type="submit" [disabled]="passWordForm.invalid || isLoading">
+            <app-loader class="inline-loader" [isLoading]="isLoading"></app-loader>
+            <span translate>Login</span>
+          </button>
+        </div>
+      </form>
+      <mat-card-actions>
+        <button start color="primary" (click)="cancel()" mat-button><span translate> Cancel </span></button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

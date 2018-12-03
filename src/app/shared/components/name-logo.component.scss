@@ -1,0 +1,17 @@
+.logo-container {
+  box-sizing: content-box;
+  margin: 10px 0 20px 0;
+}
+
+.engraved-logo {
+  font-size: 2.7em;
+  font-family: Futura;
+  /* background-color: #666666; */
+  background: linear-gradient(160deg, #84dcff, #43cea2, #185a9d, #1d2b64, #f8cdda);
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: rgba(245, 245, 245, 0.5) 3px 5px 1px;
+  margin: 10px 0 20px 0;
+}
