@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormGroup, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { finalize, debounceTime } from 'rxjs/operators';
+
+import { CropperComponent } from 'angular-cropperjs';
 
 import { environment } from '@env/environment';
 import { Logger, I18nService, AuthenticationService } from '@app/core';
@@ -25,11 +27,26 @@ export class RegisterComponent implements OnInit {
   registerForm: FormGroup;
   passWordForm: FormGroup;
   isLoading = false;
+  showCroper = false;
   step = registerStateEnum.PICTURE;
   profilePreview: any;
   redirectRoute: string;
   loadedFile: File;
   loadedFileUrl = 'https://material.angular.io/assets/img/examples/shiba2.jpg';
+  config = {
+    zoomable: true,
+    movable: true,
+    aspectRatio: 16 / 9,
+    dragMode: 'move',
+    cropBoxResizable: false,
+    data: {
+      y: 100,
+      height: 450
+    }
+  };
+
+  @ViewChild('angularCropper')
+  public angularCropper: CropperComponent;
 
   constructor(
     private router: Router,
@@ -123,10 +140,25 @@ export class RegisterComponent implements OnInit {
 
     reader.onload = (e: any) => {
       this.loadedFileUrl = e.target.result;
+      this.showCroper = true;
     };
 
     reader.readAsDataURL(this.loadedFile);
     // this.loadedFileUrl = URL.createObjectURL(this.loadedFile);
+  }
+
+  upload() {}
+
+  zoom(level: number) {
+    this.angularCropper.cropper.zoom(level);
+  }
+
+  rotate(angle: number) {
+    this.angularCropper.cropper.rotate(angle);
+  }
+
+  move(leftRight: number, upDown: number) {
+    this.angularCropper.cropper.move(leftRight, upDown);
   }
 
   setLanguage(language: string) {

@@ -100,18 +100,50 @@
       <pj-name-logo></pj-name-logo>
       <mat-card-header>
         <!-- <div mat-card-avatar class="profile-pic-preview"> -->
-        <img start mat-card-avatar src="{{loadedFileUrl}}" />
-        <!-- <img alt="profile-picture" src="https://material.angular.io/assets/img/examples/shiba1.jpg" /> -->
+        <img class="profile-pic-preview" start mat-card-avatar src="{{loadedFileUrl}}" />
         <!-- </div> -->
         <mat-card-title>Shiba Inu</mat-card-title>
         <mat-card-subtitle>Dog Breed</mat-card-subtitle>
       </mat-card-header>
-      <img class="profile-croper" mat-card-image src="{{loadedFileUrl}}" alt="Photo of a Shiba Inu" />
-      <mat-card-content> <h3 class="drop-picture-content" translate>Dorp a picture here.</h3> </mat-card-content>
+      <img
+        *ngIf="!showCroper"
+        class="profile-croper"
+        mat-card-image
+        src="{{loadedFileUrl}}"
+        alt="Photo of a Shiba Inu"
+      />
+      <angular-cropper
+        #angularCropper
+        *ngIf="showCroper"
+        [cropperOptions]="config"
+        [imageUrl]="loadedFileUrl"
+      ></angular-cropper>
+      <mat-card-content>
+        <div
+          *ngIf="showCroper"
+          class="cropper-control"
+          [style.marginTop]="'5px'"
+          fxFill
+          fxLayout="row"
+          fxLayoutAlign="center center"
+          fxLayoutGap=".5rem"
+        >
+          <button mat-icon-button (click)="crop()"><mat-icon>crop</mat-icon></button>
+          <button mat-icon-button (click)="zoom(0.1)"><mat-icon>zoom_in</mat-icon></button>
+          <button mat-icon-button (click)="zoom(-0.1)"><mat-icon>zoom_out</mat-icon></button>
+          <button mat-icon-button (click)="rotate(-90)"><mat-icon>rotate_left</mat-icon></button>
+          <button mat-icon-button (click)="rotate(90)"><mat-icon>rotate_right</mat-icon></button>
+          <button mat-icon-button (click)="move(-2, 0)"><mat-icon>arrow_back</mat-icon></button>
+          <button mat-icon-button (click)="move(0, -2)"><mat-icon>arrow_upward</mat-icon></button>
+          <button mat-icon-button (click)="move(0, 2)"><mat-icon>arrow_downward</mat-icon></button>
+          <button mat-icon-button (click)="move(2, 0)"><mat-icon>arrow_forward</mat-icon></button>
+        </div>
+        <h3 class="drop-picture-content" translate>Dorp a picture here.</h3>
+      </mat-card-content>
       <mat-card-actions>
         <input type="file" style="display: none;" (change)="selectFile($event)" #fileInput />
         <button (click)="fileInput.click()" color="primary" mat-button><span translate>Pick Image</span></button>
-        <button color="primary" mat-button><span translate>Save</span></button>
+        <button (click)="upload()" color="primary" mat-button><span translate>Save</span></button>
       </mat-card-actions>
     </mat-card>
   </div>

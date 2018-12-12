@@ -9,8 +9,11 @@ import { MaterialModule } from '@app/material.module';
 import { RegisterRoutingModule } from './register-routing.module';
 import { RegisterComponent } from './register.component';
 
+import { AngularCropperjsModule } from 'angular-cropperjs';
+
 @NgModule({
   imports: [
+    AngularCropperjsModule,
     CommonModule,
     ReactiveFormsModule,
     TranslateModule,
