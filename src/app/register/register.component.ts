@@ -101,8 +101,8 @@ export class RegisterComponent implements OnInit {
 
   register() {
     this.isLoading = true;
-    /* this.authenticationService
-      .register({...this.passWordForm.value, membername: this.profilePreview.membername })
+    this.authenticationService
+      .register({ ...this.passWordForm.value, membername: this.profilePreview.membername })
       .pipe(
         finalize(() => {
           this.passWordForm.markAsPristine();
@@ -120,7 +120,7 @@ export class RegisterComponent implements OnInit {
           log.debug(`Register error: ${error}`);
           this.pwdError = error;
         }
-      ); */
+      );
     this.step = registerStateEnum.PICTURE;
   }
 

@@ -53,30 +53,40 @@ export class AuthenticationService {
                 .pipe(map((body: any) => body.value)); */
   }
 
-  getProfilPreview(identifier: any) {
-    const params: any = {};
+  /**
+   * Authenticates the user.
+   * @param context The login parameters.
+   * @return The user credentials.
+   */
+  register(context: LoginContext): Observable<Credentials> {
+    // Replace by proper authentication call
+    const data = {
+      membername: context.membername,
+      token: '123456'
+    };
+    this.setCredentials(data, context.remember);
+    return of(data);
+    /* return this.httpClient
+                .cache()
+                .post('/', context)
+                .pipe(map((body: any) => body.value)); */
+  }
 
+  getProfilPreview(identifier: any) {
     if (EMAILREGEX.test(identifier)) {
-      params.email = identifier;
+      identifier = identifier;
     } else {
       if (identifier[0] !== '@') {
         identifier = '@' + identifier;
       }
-      params.membername = identifier;
     }
 
-    return of({
-      membername: identifier,
-      name: 'John Doe',
-      picture: 'assets/ngx-rocket-logo.png'
-    });
-
-    /*     return this.httpClient
-                .cache()
-                .get('/preview', {
-                  params: params
-                }).pipe(map((body: any) => body.value));
-*/
+    return this.httpClient
+      .cache()
+      .get('/preview', {
+        params: { q: identifier }
+      })
+      .pipe(map((body: any) => body.value));
   }
 
   /**
