@@ -83,10 +83,10 @@ export class AuthenticationService {
 
     return this.httpClient
       .cache()
-      .get('/preview', {
-        params: { q: identifier }
+      .get('/identities/preview', {
+        params: { key: identifier }
       })
-      .pipe(map((body: any) => body.value));
+      .pipe(map((body: any) => body));
   }
 
   /**

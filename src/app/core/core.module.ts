@@ -10,6 +10,7 @@ import { I18nService } from './i18n.service';
 import { HttpService } from './http/http.service';
 import { HttpCacheService } from './http/http-cache.service';
 import { ApiPrefixInterceptor } from './http/api-prefix.interceptor';
+import { TokenInterceptor } from './http/token.interceptor';
 import { ErrorHandlerInterceptor } from './http/error-handler.interceptor';
 import { CacheInterceptor } from './http/cache.interceptor';
 
@@ -21,6 +22,11 @@ import { CacheInterceptor } from './http/cache.interceptor';
     I18nService,
     HttpCacheService,
     ApiPrefixInterceptor,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: TokenInterceptor,
+      multi: true
+    },
     ErrorHandlerInterceptor,
     CacheInterceptor,
     {
