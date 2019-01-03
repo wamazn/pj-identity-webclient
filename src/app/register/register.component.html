@@ -1,9 +1,8 @@
 <div fxFill fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="1.5rem" class="mat-typography">
   <div class="main-container" fxLayout="row" fxLayoutAlign="center">
-    <mat-card *ngIf="step == 0" fxFlex="90%" fxFlex.sm="66%" fxFlex.md="50%" fxFlex.gt-md="33%" class="main-box">
+    <mat-card *ngIf="step == 0" fxFlex="90%" fxFlex.sm="66%" fxFlex.md="35%" fxFlex.gt-md="33%" class="main-box">
       <pj-name-logo></pj-name-logo>
       <form (ngSubmit)="register()" [formGroup]="registerForm" novalidate>
-        <div class="registration-error" [hidden]="!registerError || isLoading" translate>member name incorrect.</div>
         <br />
         <div fxLayout="column">
           <mat-form-field>
@@ -13,10 +12,11 @@
               formControlName="membername"
               autocomplete="membername"
               [placeholder]="'@membername' | translate"
+              (blur)="verifyMemberName()"
             />
-            <mat-error *ngIf="!registerForm.controls.membername.valid || mbrError">
-              <span *ngIf="!mbrError" translate>member name is required</span>
-              <span *ngIf="mbrError" translate>member name already exists</span>
+            <mat-error *ngIf="mbrError == true || !registerForm.controls.membername.valid">
+              <span *ngIf="!mbrError" translate>MEMBERNAME_REQUIRED</span>
+              <span *ngIf="mbrError" translate>MEMBERNAME_EXIST</span>
             </mat-error>
           </mat-form-field>
           <mat-form-field>
@@ -26,20 +26,21 @@
               formControlName="email"
               autocomplete="email"
               [placeholder]="'email' | translate"
+              (blur)="verifyEmail()"
             />
             <mat-error
               *ngIf="
                 (registerForm.controls.email.hasError('email') && !registerForm.controls.email.hasError('required')) ||
-                emailError
+                emailError.length > 0
               "
             >
-              <span *ngIf="!emailError" translate>email is invlaid</span>
-              <span *ngIf="emailError" translate>email already registered</span>
+              <span *ngIf="!emailError" translate>INVALID_EMAIL</span>
+              <span *ngIf="emailError.length > 0" translate>{{ emailError }}</span>
             </mat-error>
             <mat-error
               *ngIf="!registerForm.controls.email.hasError('email') && registerForm.controls.email.hasError('required')"
             >
-              <span *ngIf="!emailError" translate>email is required</span>
+              <span *ngIf="!emailError" translate>EMAIL_REQUIRED</span>
             </mat-error>
           </mat-form-field>
           <mat-form-field>
@@ -51,7 +52,7 @@
               [placeholder]="'password' | translate"
             />
             <mat-error *ngIf="registerForm.controls.password.hasError('required')">
-              <span translate>password is required</span>
+              <span translate>PSWD_REQUIRED</span>
             </mat-error>
           </mat-form-field>
           <mat-form-field>
@@ -63,27 +64,29 @@
               [placeholder]="'repeate password' | translate"
             />
             <mat-error *ngIf="!registerForm.controls.passwordRepeate.valid">
-              <span translate>passwords don't match</span>
+              <span *ngIf="registerForm.controls.passwordRepeate.hasError('required')" translate
+                >PSWD_REAPEAT_REQUIRED</span
+              >
+              <span *ngIf="!registerForm.controls.passwordRepeate.hasError('required')" translate>PSWD_MISMATCH</span>
             </mat-error>
           </mat-form-field>
           <mat-form-field>
-            <input maxlength="4" type="number" matInput formControlName="key" [placeholder]="'key' | translate" />
-            <mat-hint>A 4 digit security number</mat-hint>
+            <input type="password" matInput formControlName="key" [placeholder]="'key' | translate" />
+            <mat-hint translate>SECURITY_KEY_HINT</mat-hint>
             <mat-error *ngIf="!registerForm.controls.key.valid">
-              <span translate>key is required and must be a 4 digit number</span>
+              <span translate>SECURITY_KEY_REQEUIRED</span>
             </mat-error>
           </mat-form-field>
           <br />
-
-          <button mat-flat-button color="primary" type="submit" [disabled]="registerForm.invalid || isLoading">
+          <button mat-flat-button color="primary" type="submit" [disabled]="registerForm.invalid">
             <app-loader class="inline-loader" [isLoading]="isLoading"></app-loader>
-            <span translate>Register</span>
+            <span translate>REGISTER</span>
           </button>
         </div>
       </form>
       <mat-card-actions>
         <button color="primary" [routerLink]="['/login']" queryParamsHandling="preserve" mat-button>
-          <span translate>Login</span>
+          <span translate>LOGIN</span>
         </button>
       </mat-card-actions>
     </mat-card>
@@ -94,49 +97,50 @@
       fxFlex="90%"
       fxFlex.sm="66%"
       fxFlex.md="50%"
-      fxFlex.gt-md="33%"
+      fxFlex.gt-md="35%"
       class="main-box"
     >
       <pj-name-logo></pj-name-logo>
-      <mat-card-header>
+      <mat-card-header style="margin-bottom: 10px;">
         <!-- <div mat-card-avatar class="profile-pic-preview"> -->
-        <img class="profile-pic-preview" start mat-card-avatar src="{{loadedFileUrl}}" />
+        <img class="profile-pic-preview" start mat-card-avatar src="{{croppedImage || defaultAvatar}}" />
         <!-- </div> -->
-        <mat-card-title>Shiba Inu</mat-card-title>
-        <mat-card-subtitle>Dog Breed</mat-card-subtitle>
+        <mat-card-title>{{ profilePreview.membername }}</mat-card-title>
+        <mat-card-subtitle>{{ profilePreview.email }}</mat-card-subtitle>
       </mat-card-header>
-      <img
-        *ngIf="!showCroper"
-        class="profile-croper"
-        mat-card-image
-        src="{{loadedFileUrl}}"
-        alt="Photo of a Shiba Inu"
-      />
-      <angular-cropper
-        #angularCropper
-        *ngIf="showCroper"
-        [cropperOptions]="config"
-        [imageUrl]="loadedFileUrl"
-      ></angular-cropper>
+      <img *ngIf="!showCropper" class="profile-cropper" mat-card-image src="{{loadedFileUrl}}" alt="" />
+      <image-cropper
+        class="profile-cropper"
+        [imageChangedEvent]="imageChangedEvent"
+        [imageBase64]="loadedFileUrl"
+        [maintainAspectRatio]="true"
+        [aspectRatio]="cropperConfig.aspectRatio"
+        [resizeToWidth]="cropperConfig.resizeToWidth"
+        [cropperMinWidth]="cropperConfig.cropperMinWidth"
+        [onlyScaleDown]="true"
+        [roundCropper]="true"
+        format="png"
+        outputType="base64"
+        (imageCropped)="imageCropped($event)"
+        (imageLoaded)="imageLoaded()"
+        (cropperReady)="cropperReady()"
+        (loadImageFailed)="loadImageFailed()"
+        [style.display]="showCropper ? null : 'none'"
+      ></image-cropper>
       <mat-card-content>
         <div
-          *ngIf="showCroper"
+          *ngIf="showCropper"
           class="cropper-control"
           [style.marginTop]="'5px'"
           fxFill
           fxLayout="row"
           fxLayoutAlign="center center"
-          fxLayoutGap=".5rem"
+          fxLayoutGap=".2rem"
         >
-          <button mat-icon-button (click)="crop()"><mat-icon>crop</mat-icon></button>
-          <button mat-icon-button (click)="zoom(0.1)"><mat-icon>zoom_in</mat-icon></button>
-          <button mat-icon-button (click)="zoom(-0.1)"><mat-icon>zoom_out</mat-icon></button>
-          <button mat-icon-button (click)="rotate(-90)"><mat-icon>rotate_left</mat-icon></button>
-          <button mat-icon-button (click)="rotate(90)"><mat-icon>rotate_right</mat-icon></button>
-          <button mat-icon-button (click)="move(-2, 0)"><mat-icon>arrow_back</mat-icon></button>
-          <button mat-icon-button (click)="move(0, -2)"><mat-icon>arrow_upward</mat-icon></button>
-          <button mat-icon-button (click)="move(0, 2)"><mat-icon>arrow_downward</mat-icon></button>
-          <button mat-icon-button (click)="move(2, 0)"><mat-icon>arrow_forward</mat-icon></button>
+          <button mat-icon-button (click)="rotateLeft()"><mat-icon>rotate_left</mat-icon></button>
+          <button mat-icon-button (click)="rotateRight()"><mat-icon>rotate_right</mat-icon></button>
+          <button mat-icon-button (click)="flipHorizontal()"><mat-icon>flip</mat-icon></button>
+          <button mat-icon-button (click)="flipVertical()"><mat-icon class="vertical-flip">flip</mat-icon></button>
         </div>
         <h3 class="drop-picture-content" translate>Dorp a picture here.</h3>
       </mat-card-content>

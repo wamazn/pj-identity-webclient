@@ -15,6 +15,7 @@ export class TokenInterceptor implements HttpInterceptor {
   constructor() {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // TODO remove default key y production
     const a_token = sessionStorage.getItem(ACCESS_TOKEN_KEY) || 'ak6b2hzWgsUwf13nMB6HB23ILMgOo5P8';
     request = request.clone({ setParams: { access_token: a_token } });
 

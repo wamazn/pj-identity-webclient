@@ -15,6 +15,10 @@ export interface LoginContext {
   remember?: boolean;
 }
 
+export interface RegisterContext extends LoginContext {
+  thumbnail: string;
+}
+
 const credentialsKey = 'credentials';
 
 const EMAILREGEX = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -41,16 +45,18 @@ export class AuthenticationService {
    */
   login(context: LoginContext): Observable<Credentials> {
     // Replace by proper authentication call
-    const data = {
-      membername: context.membername,
-      token: '123456'
-    };
-    this.setCredentials(data, context.remember);
-    return of(data);
-    /* return this.httpClient
-                .cache()
-                .post('/', context)
-                .pipe(map((body: any) => body.value)); */
+
+    console.log(context);
+    return this.httpClient
+      .post('/auth', context, {
+        headers: { Authorization: 'basic ' + btoa(context.membername + ':' + context.password) }
+      })
+      .pipe(
+        map((body: any) => {
+          this.setCredentials(body, context.remember);
+          return body;
+        })
+      );
   }
 
   /**
@@ -58,18 +64,40 @@ export class AuthenticationService {
    * @param context The login parameters.
    * @return The user credentials.
    */
-  register(context: LoginContext): Observable<Credentials> {
+  register(context: RegisterContext): Observable<any> {
     // Replace by proper authentication call
-    const data = {
-      membername: context.membername,
-      token: '123456'
-    };
-    this.setCredentials(data, context.remember);
-    return of(data);
-    /* return this.httpClient
-                .cache()
-                .post('/', context)
-                .pipe(map((body: any) => body.value)); */
+
+    return this.httpClient
+      .post(
+        '/identities',
+        context /* ,
+              {
+                headers: {'Authorization': 'basic ' + btoa(context.membername + ':'+ context.password) }
+              } */
+      )
+      .pipe(
+        map((body: any) => {
+          this.setCredentials(body, context.remember);
+          return body;
+        })
+      );
+  }
+
+  checkProfileExist(identifier: any) {
+    if (EMAILREGEX.test(identifier)) {
+      identifier = identifier;
+    } else {
+      if (identifier[0] !== '@') {
+        identifier = '@' + identifier;
+      }
+    }
+
+    return this.httpClient
+      .cache()
+      .get('/identities/exist', {
+        params: { key: identifier }
+      })
+      .pipe(map((body: any) => body));
   }
 
   getProfilPreview(identifier: any) {

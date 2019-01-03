@@ -31,9 +31,9 @@
 
 .profile-pic-preview {
   border: 2px solid #77f;
-  -webkit-filter: sepia(0.25);
-  -moz-filter: sepia(0.25);
-  filter: sepia(0.25);
+  background: aliceblue;
+  width: 4em;
+  height: 4em;
 }
 
 .drop-picture-content {
@@ -42,8 +42,16 @@
   border-bottom: 2px dashed;
 }
 
-.profile-croper {
-  height: 300px;
+.profile-cropper {
+  min-height: 20em;
+  width: 90%;
+  margin: auto;
+  display: block;
+  background: aliceblue;
+  max-height: 37em;
+}
+.vertical-flip {
+  transform: rotate(90deg);
 }
 
 .cropper-control {

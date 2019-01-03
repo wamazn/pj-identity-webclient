@@ -8,12 +8,11 @@ import { SharedModule } from '@app/shared';
 import { MaterialModule } from '@app/material.module';
 import { RegisterRoutingModule } from './register-routing.module';
 import { RegisterComponent } from './register.component';
-
-import { AngularCropperjsModule } from 'angular-cropperjs';
+import { ImageCropperModule } from 'ngx-image-cropper';
 
 @NgModule({
   imports: [
-    AngularCropperjsModule,
+    ImageCropperModule,
     CommonModule,
     ReactiveFormsModule,
     TranslateModule,

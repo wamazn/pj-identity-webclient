@@ -1,14 +1,16 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormGroup, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { finalize, debounceTime } from 'rxjs/operators';
+import { finalize, debounceTime, switchMap, debounce } from 'rxjs/operators';
 
-import { CropperComponent } from 'angular-cropperjs';
+import { ImageCroppedEvent, ImageCropperComponent } from 'ngx-image-cropper';
+import * as md5 from 'js-md5';
 
 import { environment } from '@env/environment';
 import { Logger, I18nService, AuthenticationService } from '@app/core';
 
 const log = new Logger('Register');
+const REGEX_PSWD_STRENGTH = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
 
 enum registerStateEnum {
   REGISTER,
@@ -23,30 +25,27 @@ enum registerStateEnum {
 export class RegisterComponent implements OnInit {
   version: string = environment.version;
   pwdError: string;
-  mbrError: string;
+  mbrError: boolean = false;
+  emailError: string = '';
   registerForm: FormGroup;
-  passWordForm: FormGroup;
   isLoading = false;
-  showCroper = false;
-  step = registerStateEnum.PICTURE;
-  profilePreview: any;
+  showCropper = false;
+  step = registerStateEnum.REGISTER;
+  profilePreview: any = {};
   redirectRoute: string;
   loadedFile: File;
-  loadedFileUrl = 'https://material.angular.io/assets/img/examples/shiba2.jpg';
-  config = {
-    zoomable: true,
-    movable: true,
-    aspectRatio: 16 / 9,
-    dragMode: 'move',
-    cropBoxResizable: false,
-    data: {
-      y: 100,
-      height: 450
-    }
+  loadedFileUrl = '';
+  croppedImage: any = '';
+  defaultAvatar = 'https://www.gravatar.com/avatar?d=mp';
+  imageChangedEvent: any = '';
+  cropperConfig = {
+    aspectRatio: 1 / 1,
+    cropperMinWidth: 100,
+    resizeToWidth: 300
   };
 
-  @ViewChild('angularCropper')
-  public angularCropper: CropperComponent;
+  @ViewChild(ImageCropperComponent)
+  imageCropper: ImageCropperComponent;
 
   constructor(
     private router: Router,
@@ -62,76 +61,73 @@ export class RegisterComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.redirectRoute = params.redirect;
     });
-
-    this.registerForm.controls.membername.valueChanges.pipe(debounceTime(500)).subscribe((value: string) => {
-      // check member existance
-      log.debug(`${value} Member not found`);
-    });
-
-    this.registerForm.controls.email.valueChanges.pipe(debounceTime(500)).subscribe((value: string) => {
-      // check member existance
-      log.debug(`${value} email not found`);
-    });
   }
 
-  findMember() {
-    this.authenticationService
-      .getProfilPreview(this.registerForm.value['identifier'])
-      .pipe(
-        finalize(() => {
-          this.registerForm.markAsPristine();
-          this.isLoading = false;
-        })
-      )
-      .subscribe(
-        profilePreview => {
-          this.profilePreview = profilePreview;
-          log.debug(`${profilePreview.membername} Member found`);
-          this.step = registerStateEnum.REGISTER;
-          /* this.route.queryParams.subscribe(params =>
-             this.router.navigate([params.redirect || '/'], { replaceUrl: true })
-          ); */
+  verifyMemberName() {
+    if (this.registerForm.controls.membername.value)
+      return this.authenticationService.checkProfileExist(this.registerForm.controls.membername.value).subscribe(
+        (value: any) => {
+          // check member existance
+          console.log(value);
+          this.mbrError = value.memberExist;
+          this.registerForm.controls.membername.updateValueAndValidity({ onlySelf: true });
         },
-        error => {
-          log.debug(`member not found: ${error}`);
-          this.mbrError = error;
-        }
+        err => (this.mbrError = true)
+      );
+  }
+
+  verifyEmail() {
+    if (this.registerForm.controls.email.value)
+      return this.authenticationService.checkProfileExist(this.registerForm.controls.email.value).subscribe(
+        (value: any) => {
+          // check member existance
+          this.emailError = value.memberExist ? 'EMAIL_EXIST' : '';
+          this.registerForm.controls.email.updateValueAndValidity({ onlySelf: true });
+        },
+        err => (this.emailError = 'EEROR_VERIFYING_EMAIL')
       );
   }
 
   register() {
     this.isLoading = true;
-    this.authenticationService
-      .register({ ...this.passWordForm.value, membername: this.profilePreview.membername })
-      .pipe(
-        finalize(() => {
-          this.passWordForm.markAsPristine();
-          this.isLoading = false;
+    return (
+      this.registerForm.valid &&
+      this.authenticationService
+        .register({
+          ...this.registerForm.value,
+          thumbnail: 'https://www.gravatar.com/avatar/' + md5(this.registerForm.value.email)
         })
-      )
-      .subscribe(
-        credentials => {
-          log.debug(`${credentials.membername} successfully logged in`);
-          this.route.queryParams.subscribe(params =>
+        .pipe(
+          finalize(() => {
+            this.registerForm.markAsPristine();
+            this.isLoading = false;
+          })
+        )
+        .subscribe(
+          credentials => {
+            console.log(credentials);
+            this.profilePreview = credentials.identity;
+            this.step = registerStateEnum.PICTURE;
+            /* this.route.queryParams.subscribe(params =>
             this.router.navigate([params.redirect || '/'], { replaceUrl: true })
-          );
-        },
-        error => {
-          log.debug(`Register error: ${error}`);
-          this.pwdError = error;
-        }
-      );
-    this.step = registerStateEnum.PICTURE;
+          ); */
+          },
+          error => {
+            log.debug(`Register error: ${error}`);
+            this.pwdError = error;
+          }
+        )
+    );
   }
 
   drop(files: FileList) {
-    console.log('dropping - files', files);
     this.cacheAndPreview(files[0]);
   }
 
   selectFile($event: any) {
-    console.log($event.target.files);
-    this.cacheAndPreview($event.target.files[0]);
+    this.loadedFileUrl = null;
+    this.showCropper = true;
+    this.imageChangedEvent = $event;
   }
 
   cacheAndPreview(file: File) {
@@ -139,27 +135,50 @@ export class RegisterComponent implements OnInit {
     const reader = new FileReader();
 
     reader.onload = (e: any) => {
+      this.imageChangedEvent = null;
       this.loadedFileUrl = e.target.result;
-      this.showCroper = true;
+      this.showCropper = true;
     };
 
     reader.readAsDataURL(this.loadedFile);
-    // this.loadedFileUrl = URL.createObjectURL(this.loadedFile);
   }
 
   upload() {}
 
-  zoom(level: number) {
-    this.angularCropper.cropper.zoom(level);
+  //////////////////////////////////////////////////
+  fileChangeEvent(event: any): void {
+    this.imageChangedEvent = event;
   }
 
-  rotate(angle: number) {
-    this.angularCropper.cropper.rotate(angle);
+  imageCropped(event: ImageCroppedEvent) {
+    this.croppedImage = event.base64;
   }
 
-  move(leftRight: number, upDown: number) {
-    this.angularCropper.cropper.move(leftRight, upDown);
+  imageLoaded() {
+    this.showCropper = true;
   }
+  cropperReady() {
+    console.log('Cropper ready');
+  }
+  loadImageFailed() {
+    console.log('Load failed');
+  }
+  rotateLeft() {
+    this.imageCropper.rotateLeft();
+  }
+  rotateRight() {
+    this.imageCropper.rotateRight();
+  }
+
+  flipHorizontal() {
+    this.imageCropper.flipHorizontal();
+  }
+
+  flipVertical() {
+    this.imageCropper.flipVertical();
+  }
+
+  /////////////////////////////////////
 
   setLanguage(language: string) {
     this.i18nService.language = language;
@@ -175,15 +194,40 @@ export class RegisterComponent implements OnInit {
 
   private createForm() {
     this.registerForm = this.formBuilder.group({
-      membername: ['', Validators.required],
-      email: ['', Validators.compose([Validators.required, Validators.email])],
-      password: ['', Validators.compose([Validators.required, Validators.minLength(6)])],
-      passwordRepeate: ['', Validators.compose([Validators.required, Validators.minLength(6), this.passwordEqual])],
-      key: ['', Validators.compose([Validators.required, Validators.maxLength(4), Validators.minLength(4)])]
+      membername: ['', Validators.compose([Validators.required, this.memberNameValidator()])],
+      email: ['', Validators.compose([Validators.required, Validators.email, this.emailExistValidator()])],
+      password: ['', Validators.compose([Validators.required, Validators.minLength(6), this.passwordVlidator])],
+      passwordRepeate: ['', Validators.compose([Validators.required, Validators.minLength(6), this.passwordEqual()])],
+      key: ['', Validators.compose([Validators.required, this.keyTypeValidator])]
     });
   }
 
-  private passwordEqual(control: AbstractControl): ValidationErrors | null {
-    return null;
+  private keyTypeValidator(control: AbstractControl): ValidationErrors | null {
+    return /\d{4}/.test(control.value) && control.value.length == 4 ? null : { valid: false };
+  }
+
+  private passwordVlidator(control: AbstractControl): ValidationErrors | null {
+    return REGEX_PSWD_STRENGTH.test(control.value) ? null : { valid: false };
+  }
+
+  private passwordEqual() {
+    return (control: AbstractControl): ValidationErrors | null => {
+      let res: any = null;
+      if (control.value && this.registerForm.controls.password.value) {
+        res = control.value === this.registerForm.controls.password.value ? null : { valid: false };
+      }
+      return res;
+    };
+  }
+
+  private memberNameValidator() {
+    return (control: AbstractControl): ValidationErrors | null => {
+      return this.mbrError ? { message: this.mbrError } : null;
+    };
+  }
+  private emailExistValidator() {
+    return (control: AbstractControl): ValidationErrors | null => {
+      return this.emailError ? { message: this.emailError } : null;
+    };
   }
 }

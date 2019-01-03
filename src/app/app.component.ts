@@ -33,6 +33,9 @@ export class AppComponent implements OnInit {
     if (environment.production) {
       Logger.enableProductionMode();
     }
+    let accessTokenElement = document.getElementById('a_tkn');
+    let accessToken = accessTokenElement.innerText;
+    console.log(`access token ${accessToken}`);
 
     log.debug('init');
 
