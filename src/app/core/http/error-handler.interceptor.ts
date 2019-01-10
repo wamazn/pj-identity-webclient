@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpEvent, HttpInterceptor, HttpHandler, HttpRequest } from '@angular/common/http';
+import { HttpEvent, HttpInterceptor, HttpHandler, HttpRequest, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -18,10 +18,13 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
   }
 
   // Customize the default error handler here if needed
-  private errorHandler(response: HttpEvent<any>): Observable<HttpEvent<any>> {
+  private errorHandler(response: HttpResponse<any>): Observable<HttpEvent<any>> {
     if (!environment.production) {
       // Do something with the error
       log.error('Request error', response);
+    }
+    if (response.status == 0) {
+      log.error('Network Error', response);
     }
     throw response;
   }

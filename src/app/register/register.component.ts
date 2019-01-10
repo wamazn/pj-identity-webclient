@@ -8,6 +8,7 @@ import * as md5 from 'js-md5';
 
 import { environment } from '@env/environment';
 import { Logger, I18nService, AuthenticationService } from '@app/core';
+import { Utils } from '@app/core/utils.service';
 
 const log = new Logger('Register');
 const REGEX_PSWD_STRENGTH = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
@@ -35,6 +36,7 @@ export class RegisterComponent implements OnInit {
   redirectRoute: string;
   loadedFile: File;
   loadedFileUrl = '';
+  fileName = '';
   croppedImage: any = '';
   defaultAvatar = 'https://www.gravatar.com/avatar?d=mp';
   imageChangedEvent: any = '';
@@ -52,7 +54,8 @@ export class RegisterComponent implements OnInit {
     private route: ActivatedRoute,
     private formBuilder: FormBuilder,
     private i18nService: I18nService,
-    private authenticationService: AuthenticationService
+    private authenticationService: AuthenticationService,
+    private utils: Utils
   ) {
     this.createForm();
   }
@@ -125,25 +128,47 @@ export class RegisterComponent implements OnInit {
   }
 
   selectFile($event: any) {
-    this.loadedFileUrl = null;
-    this.showCropper = true;
-    this.imageChangedEvent = $event;
+    console.log($event);
+    // this.imageChangedEvent = $event;
+    this.cacheAndPreview($event.target.files[0]);
   }
 
   cacheAndPreview(file: File) {
     this.loadedFile = file;
+    this.fileName = file.name;
     const reader = new FileReader();
 
     reader.onload = (e: any) => {
       this.imageChangedEvent = null;
       this.loadedFileUrl = e.target.result;
+      console.log(e);
       this.showCropper = true;
     };
 
     reader.readAsDataURL(this.loadedFile);
   }
 
-  upload() {}
+  upload() {
+    this.isLoading = false;
+    let inputFile = new FormData();
+    let pix = this.utils.convertBase64ToPng(this.croppedImage);
+    inputFile.append('profileAvatar', pix);
+    this.authenticationService
+      .uploadAvatar(inputFile)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe(
+        result => {
+          console.log(result);
+        },
+        err => {
+          console.log(err);
+        }
+      );
+  }
 
   //////////////////////////////////////////////////
   fileChangeEvent(event: any): void {

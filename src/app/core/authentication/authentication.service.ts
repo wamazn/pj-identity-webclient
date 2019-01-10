@@ -83,6 +83,10 @@ export class AuthenticationService {
       );
   }
 
+  uploadAvatar(pictureForm: any) {
+    return this.httpClient.post('/avatar', pictureForm);
+  }
+
   checkProfileExist(identifier: any) {
     if (EMAILREGEX.test(identifier)) {
       identifier = identifier;
