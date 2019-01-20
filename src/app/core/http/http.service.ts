@@ -5,7 +5,8 @@ import { Observable } from 'rxjs';
 import { ErrorHandlerInterceptor } from './error-handler.interceptor';
 import { CacheInterceptor } from './cache.interceptor';
 import { ApiPrefixInterceptor } from './api-prefix.interceptor';
-
+import { TokenInterceptor } from './token.interceptor';
+import { MasterTokenInterceptor } from './master.interceptor';
 // HttpClient is declared in a re-exported module, so we have to extend the original module to make it work properly
 // (see https://github.com/Microsoft/TypeScript/issues/13897)
 declare module '@angular/common/http/src/client' {
@@ -18,6 +19,10 @@ declare module '@angular/common/http/src/client' {
      * @return The new instance.
      */
     cache(forceUpdate?: boolean): HttpClient;
+
+    token(): HttpClient;
+
+    master(): HttpClient;
 
     /**
      * Skips default error handler for this request.
@@ -66,13 +71,28 @@ export class HttpService extends HttpClient {
 
     if (!this.interceptors) {
       // Configure default interceptors that can be disabled here
-      this.interceptors = [this.injector.get(ApiPrefixInterceptor), this.injector.get(ErrorHandlerInterceptor)];
+      this.interceptors = [
+        this.injector.get(ApiPrefixInterceptor),
+        this.injector.get(TokenInterceptor),
+        this.injector.get(MasterTokenInterceptor),
+        this.injector.get(ErrorHandlerInterceptor)
+      ];
     }
   }
 
   cache(forceUpdate?: boolean): HttpClient {
     const cacheInterceptor = this.injector.get(CacheInterceptor).configure({ update: forceUpdate });
     return this.addInterceptor(cacheInterceptor);
+  }
+
+  token(): HttpClient {
+    const tokenInterceptor = this.injector.get(TokenInterceptor).configure({ addToken: true });
+    return this.addInterceptor(tokenInterceptor);
+  }
+
+  master(): HttpClient {
+    const masterTokenInterceptor = this.injector.get(MasterTokenInterceptor).configure({ addMasterKey: true });
+    return this.addInterceptor(masterTokenInterceptor);
   }
 
   skipErrorHandler(): HttpClient {

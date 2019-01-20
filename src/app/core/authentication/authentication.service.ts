@@ -45,9 +45,9 @@ export class AuthenticationService {
    */
   login(context: LoginContext): Observable<Credentials> {
     // Replace by proper authentication call
-
     console.log(context);
     return this.httpClient
+      .master()
       .post('/auth', context, {
         headers: { Authorization: 'basic ' + btoa(context.membername + ':' + context.password) }
       })
@@ -67,14 +67,10 @@ export class AuthenticationService {
   register(context: RegisterContext): Observable<any> {
     // Replace by proper authentication call
 
+    context.membername = '@' + context.membername;
     return this.httpClient
-      .post(
-        '/identities',
-        context /* ,
-              {
-                headers: {'Authorization': 'basic ' + btoa(context.membername + ':'+ context.password) }
-              } */
-      )
+      .master()
+      .post('/identities', context)
       .pipe(
         map((body: any) => {
           this.setCredentials(body, context.remember);
@@ -83,8 +79,8 @@ export class AuthenticationService {
       );
   }
 
-  uploadAvatar(pictureForm: any) {
-    return this.httpClient.post('/avatar', pictureForm);
+  uploadAvatar(id: string, pictureForm: any) {
+    return this.httpClient.token().put(`/identities/${id}/avatar`, pictureForm);
   }
 
   checkProfileExist(identifier: any) {
@@ -98,6 +94,7 @@ export class AuthenticationService {
 
     return this.httpClient
       .cache()
+      .master()
       .get('/identities/exist', {
         params: { key: identifier }
       })
@@ -115,6 +112,7 @@ export class AuthenticationService {
 
     return this.httpClient
       .cache()
+      .master()
       .get('/identities/preview', {
         params: { key: identifier }
       })

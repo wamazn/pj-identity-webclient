@@ -6,12 +6,13 @@
         <br />
         <div fxLayout="column">
           <mat-form-field>
+            <span matPrefix>@</span>
             <input
               type="text"
               matInput
               formControlName="membername"
               autocomplete="membername"
-              [placeholder]="'@membername' | translate"
+              [placeholder]="'membername' | translate"
               (blur)="verifyMemberName()"
             />
             <mat-error *ngIf="mbrError == true || !registerForm.controls.membername.valid">

@@ -152,9 +152,9 @@ export class RegisterComponent implements OnInit {
     this.isLoading = false;
     let inputFile = new FormData();
     let pix = this.utils.convertBase64ToPng(this.croppedImage);
-    inputFile.append('profileAvatar', pix);
+    inputFile.append('avatar', pix);
     this.authenticationService
-      .uploadAvatar(inputFile)
+      .uploadAvatar(this.profilePreview.id, inputFile)
       .pipe(
         finalize(() => {
           this.isLoading = false;

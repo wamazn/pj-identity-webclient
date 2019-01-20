@@ -8,20 +8,32 @@ import { map } from 'rxjs/operators';
 /**
  * Insert the apropriate token for the service targeted by the url.
  */
-const ACCESS_TOKEN_KEY = 'a_tk';
 const BEARER_TOKEN_KEY = 'b_tkn';
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
+  private addToken = false;
   constructor() {}
 
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // TODO remove default key y production
-    const a_token = sessionStorage.getItem(ACCESS_TOKEN_KEY) || 'ak6b2hzWgsUwf13nMB6HB23ILMgOo5P8';
-    request = request.clone({ setParams: { access_token: a_token } });
+  configure(options?: { addToken?: boolean } | null): TokenInterceptor {
+    const instance = new TokenInterceptor();
+    if (options && options.addToken) {
+      instance.addToken = true;
+    }
+    return instance;
+  }
 
-    let b_token = localStorage.getItem(BEARER_TOKEN_KEY);
-    if (b_token) {
-      request.headers.set('Authorization', 'Bearer ' + b_token);
+  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    let b_token: string = null;
+    if (this.addToken) {
+      b_token = localStorage.getItem(BEARER_TOKEN_KEY);
+      console.log('b_tkn', b_token);
+      if (b_token) {
+        request = request.clone({
+          setHeaders: {
+            Authorization: `Bearer ${b_token}`
+          }
+        });
+      }
     }
     return next.handle(request).pipe(
       map((event: HttpEvent<HttpResponse<any>>) => {
